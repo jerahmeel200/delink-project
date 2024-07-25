@@ -1,11 +1,24 @@
 "use client";
+import { getLoggedInUser } from "@/lib/actions/user.actions";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 const MobileNav = () => {
   const pathname = usePathname();
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = await getLoggedInUser();
+      if (user) {
+        setUserId(user.$id);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   return (
     <div className="bg-white p-4 pl-6 flex md:hidden items-center justify-between">
@@ -56,7 +69,7 @@ const MobileNav = () => {
           )}
         </Link>
       </div>
-      <Link href="/preview">
+      <Link href={userId ? `/preview/${userId}` : "#"}>
         <Image src="/icons/eye.svg" alt="logo" width={52} height={52} />
       </Link>
     </div>

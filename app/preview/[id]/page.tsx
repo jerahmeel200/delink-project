@@ -13,22 +13,94 @@ import {
   FaYoutube,
   FaFacebook,
   FaInstagram,
+  FaShareAlt,
 } from "react-icons/fa";
 import { Client, Storage } from "node-appwrite";
 import { defaultLinks, platformColors } from "@/lib/utils";
+
+// Define the props for ShareModal
+interface ShareModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  url: string;
+}
+
+// Share Modal Component
+const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, url }) => {
+  const shareOptions = [
+    { platform: "GitHub", icon: <FaGithub /> },
+    { platform: "LinkedIn", icon: <FaLinkedin /> },
+    { platform: "Twitter", icon: <FaTwitter /> },
+    { platform: "YouTube", icon: <FaYoutube /> },
+    { platform: "Facebook", icon: <FaFacebook /> },
+    { platform: "Instagram", icon: <FaInstagram /> },
+  ];
+
+  const handleShare = (platform: string) => {
+    let shareUrl = "";
+    if (platform === "GitHub") {
+      shareUrl = `https://github.com/`;
+    } else if (platform === "LinkedIn") {
+      shareUrl = `https://www.linkedin.com/shareArticle?url=${encodeURIComponent(url)}`;
+    } else if (platform === "Twitter") {
+      shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}`;
+    } else if (platform === "YouTube") {
+      shareUrl = `https://www.youtube.com`;
+    } else if (platform === "Facebook") {
+      shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+    } else if (platform === "Instagram") {
+      shareUrl = `https://www.instagram.com/`;
+    }
+    window.open(shareUrl, "_blank", "noopener,noreferrer");
+  };
+
+  return isOpen ? (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+      <div className="bg-white p-6 rounded-lg w-[90%] max-w-md relative">
+        <button
+          className="absolute top-2 right-2 text-gray-600"
+          onClick={onClose}
+        >
+          &times;
+        </button>
+        <h3 className="text-lg font-semibold mb-4">Share this page</h3>
+        <div className="flex flex-col gap-3">
+          {shareOptions.map((option, index) => (
+            <Button
+              key={index}
+              variant="outline"
+              className="flex items-center gap-2"
+              onClick={() => handleShare(option.platform)}
+            >
+              {option.icon}
+              {option.platform}
+            </Button>
+          ))}
+          <Button
+            variant="outline"
+            className="flex items-center gap-2"
+            onClick={() => navigator.clipboard.writeText(url)}
+          >
+            <FaShareAlt />
+            Copy Link
+          </Button>
+        </div>
+      </div>
+    </div>
+  ) : null;
+};
 
 const Preview = () => {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const loggedInUser = await getLoggedInUser();
-        if (!loggedInUser) {
-          router.push("/sign-in");
-        } else {
+        if (loggedInUser) {
           setUser(loggedInUser);
 
           // Fetch the profile image only after user data is fetched
@@ -65,6 +137,8 @@ const Preview = () => {
     { platform: "Instagram", url: user?.instagram, icon: <FaInstagram /> },
   ];
 
+  const currentUrl = typeof window !== "undefined" ? window.location.href : "";
+
   return (
     <section className="relative md:p-6 w-full">
       {/* BLUE BACKGROUND */}
@@ -80,11 +154,12 @@ const Preview = () => {
             Back to Editor
           </Button>
         </Link>
-        <Link href="/">
-          <Button className="py-[11px] px-[27px] rounded-lg h-[46px] bg-purple font-semibold hover:bg-lightpurple hover:text-purple">
-            Share Link
-          </Button>
-        </Link>
+        <Button
+          className="py-[11px] px-[27px] rounded-lg h-[46px] bg-purple font-semibold hover:bg-lightpurple hover:text-purple"
+          onClick={() => setIsModalOpen(true)}
+        >
+          Share Link
+        </Button>
       </div>
 
       {/* USER CARD */}
@@ -161,6 +236,13 @@ const Preview = () => {
               )}
         </div>
       </div>
+
+      {/* SHARE MODAL */}
+      <ShareModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        url={currentUrl}
+      />
     </section>
   );
 };
