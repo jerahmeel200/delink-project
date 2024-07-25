@@ -80,25 +80,21 @@ export default function Profile() {
     }
   };
 
-  const handleFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
       const url = URL.createObjectURL(file);
       setImageUrl(url);
-
+  
       const client = new Client()
         .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
         .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT!);
-
+  
       const storage = new Storage(client);
-
+  
       // Get the input element and ensure it's of type HTMLInputElement
-      const uploader = document.getElementById(
-        "uploader"
-      ) as HTMLInputElement | null;
-
+      const uploader = document.getElementById("uploader") as HTMLInputElement | null;
+  
       if (uploader && uploader.files && uploader.files[0]) {
         try {
           if (user) {
@@ -107,10 +103,10 @@ export default function Profile() {
               user.$id,
               uploader.files[0]
             );
-
+  
             const response = await promise;
             console.log(response); // Success
-
+  
             // Optional: Toast notifications for success
             toast({
               description: "Your changes have been successfully saved!",
@@ -137,6 +133,8 @@ export default function Profile() {
       }
     }
   };
+  
+
 
   useEffect(() => {
     const fetchProfileImage = async () => {
@@ -144,15 +142,15 @@ export default function Profile() {
         const client = new Client()
           .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
           .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT!);
-
+  
         const storage = new Storage(client);
-
+  
         try {
           const response = await storage.getFileDownload(
             process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID!,
             user.$id
           );
-
+  
           // Convert the response (ArrayBuffer) to a Blob
           const blob = new Blob([response], { type: "image/jpeg" });
           const url = URL.createObjectURL(blob);
@@ -162,9 +160,10 @@ export default function Profile() {
         }
       }
     };
-
+  
     fetchProfileImage();
   }, [user]);
+  
 
   return (
     <section className="bg-lightgray min-h-screen md:p-6 flex flex-col md:gap-6">
